@@ -48,45 +48,56 @@ export const syncLeagues = action({
     }
 
     const gameArray = Array.isArray(games) ? games : [games];
-    console.log("Found games:", gameArray.map((g: any) => ({ code: g.game_code, key: g.game_key })));
+    console.log("Found games:", gameArray.map((g: any) => ({ code: g.code, key: g.game_key })));
     
-    const nhlGame = gameArray.find((g: any) => g.game_code === "nhl");
+    // Yahoo API uses "code" not "game_code" for the game code
+    const nhlGame = gameArray.find((g: any) => g.code === "nhl");
 
     if (!nhlGame) {
-      console.warn("No NHL game found. Available games:", gameArray.map((g: any) => g.game_code));
-      return { synced: 0, message: `No NHL game found. Available games: ${gameArray.map((g: any) => g.game_code).join(", ")}` };
+      console.warn("No NHL game found. Available games:", gameArray.map((g: any) => g.code));
+      return { synced: 0, message: `No NHL game found. Available games: ${gameArray.map((g: any) => g.code).join(", ")}` };
     }
     
     console.log("Found NHL game:", nhlGame.game_key);
 
     // Fetch leagues for NHL game
+    console.log("Fetching leagues for game:", nhlGame.game_key);
     const leaguesXml = await ctx.runAction(api.yahooApi.fetchLeagues, {
       gameKey: nhlGame.game_key,
     });
+    console.log("Got leagues XML, length:", leaguesXml.length);
+    
     const leaguesData = await parseXml(leaguesXml);
+    console.log("Parsed leagues data:", JSON.stringify(leaguesData, null, 2).substring(0, 2000));
 
+    // The structure might be different - check the actual response structure
     const leagues = leaguesData.fantasy_content?.users?.user?.games?.game?.leagues?.league;
     if (!leagues) {
-      return { synced: 0 };
+      console.warn("No leagues found in response. Full structure:", JSON.stringify(leaguesData, null, 2).substring(0, 1000));
+      return { synced: 0, message: "No leagues found in Yahoo account" };
     }
 
     const leagueArray = Array.isArray(leagues) ? leagues : [leagues];
+    console.log("Found leagues:", leagueArray.map((l: any) => ({ key: l.league_key, name: l.name })));
+    
     let syncedCount = 0;
 
     for (const league of leagueArray) {
+      console.log("Syncing league:", league.league_key, league.name);
       await ctx.runMutation(api.dataSync.upsertLeague, {
         userId: userId,
         yahooLeagueKey: league.league_key,
         yahooLeagueId: league.league_id,
         name: league.name,
-        season: league.season,
-        gameCode: league.game_code,
-        isFinished: league.is_finished === "1",
+        season: league.season || nhlGame.season, // Use game season if league doesn't have it
+        gameCode: league.code || "nhl", // Use "code" field, fallback to "nhl"
+        isFinished: league.is_finished === "1" || league.is_finished === 1,
         currentWeek: league.current_week ? parseInt(league.current_week) : undefined,
       });
       syncedCount++;
     }
 
+    console.log(`Successfully synced ${syncedCount} league(s)`);
     return { synced: syncedCount };
   },
 });
