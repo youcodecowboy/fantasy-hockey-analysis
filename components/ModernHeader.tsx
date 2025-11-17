@@ -45,17 +45,17 @@ export function ModernHeader() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4">
         {/* Logo */}
-        <Link href="/dashboard" className="mr-6 flex items-center space-x-2">
+        <Link href="/dashboard" className="mr-6 flex items-center">
           <div className="relative h-12 w-12 flex-shrink-0">
             <Image
               src="/pbc.png"
               alt="Pyongyang Bicycle Club"
-              fill
+              width={48}
+              height={48}
               className="rounded-full object-cover"
               priority
             />
           </div>
-          <span className="hidden font-bold sm:inline-block text-lg">Fantasy Hockey</span>
         </Link>
 
         {/* Yahoo Status & Refresh */}
@@ -97,13 +97,14 @@ export function ModernHeader() {
                       <Image
                         src="/pbc.png"
                         alt="Pyongyang Bicycle Club"
-                        fill
+                        width={48}
+                        height={48}
                         className="rounded-full object-cover"
                       />
                     </div>
                     <div>
-                      <h2 className="font-bold text-lg">Fantasy Hockey</h2>
-                      <p className="text-sm text-muted-foreground">Pyongyang Bicycle Club</p>
+                      <h2 className="font-bold text-lg">Pyongyang Bicycle Club</h2>
+                      <p className="text-sm text-muted-foreground">Fantasy Hockey</p>
                     </div>
                   </div>
 
