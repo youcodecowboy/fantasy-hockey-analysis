@@ -44,7 +44,8 @@ export default function LoginPage() {
 
     try {
       // Call Convex Auth signIn via HTTP endpoint
-      const response = await fetch("/api/auth/signIn", {
+      // Use the catch-all route which proxies to Convex
+      const response = await fetch("/api/auth/auth/signIn", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
