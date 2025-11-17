@@ -3,6 +3,9 @@ import { v } from "convex/values";
 import { api } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
+// Type assertion for Next.js build (Convex types are generated at runtime)
+const convexApi = api as any;
+
 const TOGETHER_API_URL = "https://api.together.xyz/v1/chat/completions";
 
 interface TogetherMessage {
@@ -88,12 +91,12 @@ export const analyzeFreeAgents = action({
 
     // Get players data
     const players = await Promise.all(
-      args.playerIds.map((id) => ctx.runQuery(api.llm.getPlayerQuery, { playerId: id }))
+      args.playerIds.map((id) => ctx.runQuery(convexApi.llm.getPlayerQuery, { playerId: id }))
     );
 
     const playersData = players
-      .filter((p) => p !== null)
-      .map((p) => ({
+      .filter((p: any) => p !== null)
+      .map((p: any) => ({
         name: p!.name,
         position: p!.position,
         team: p!.team,
@@ -109,7 +112,7 @@ My Team: ${userTeam?.name || "Unknown"}
 Current Record: ${userTeam?.wins || 0}-${userTeam?.losses || 0}-${userTeam?.ties || 0}
 
 Available Free Agents:
-${playersData.map((p, i) => `${i + 1}. ${p.name} (${p.position}, ${p.team || "FA"})`).join("\n")}
+${playersData.map((p: any, i: number) => `${i + 1}. ${p.name} (${p.position}, ${p.team || "FA"})`).join("\n")}
 
 Provide:
 1. Top 3 recommended pickups with reasoning
@@ -122,8 +125,8 @@ Provide:
       { role: "user", content: userPrompt },
     ]);
 
-    // Store analysis report
-    const reportId = await ctx.runMutation(api.llm.storeAnalysisReport, {
+    // Store analysis report  
+    const reportId = await ctx.runMutation(convexApi.llm.storeAnalysisReport, {
       userId: userId,
       leagueId: args.leagueId,
       type: "free_agents",
@@ -171,7 +174,7 @@ export const analyzeOpponent = action({
       leagueId: args.leagueId,
     });
 
-    const opponentTeam = await ctx.runQuery(api.llm.getTeamQuery, {
+    const opponentTeam = await ctx.runQuery(convexApi.llm.getTeamQuery, {
       teamId: args.opponentTeamId,
     });
 
@@ -208,7 +211,7 @@ Provide:
       { role: "user", content: userPrompt },
     ]);
 
-    const reportId = await ctx.runMutation(api.llm.storeAnalysisReport, {
+    const reportId = await ctx.runMutation(convexApi.llm.storeAnalysisReport, {
       userId: userId,
       leagueId: args.leagueId,
       type: "opponent_analysis",
@@ -285,7 +288,7 @@ Provide:
       { role: "user", content: userPrompt },
     ]);
 
-    const reportId = await ctx.runMutation(api.llm.storeAnalysisReport, {
+    const reportId = await ctx.runMutation(convexApi.llm.storeAnalysisReport, {
       userId: userId,
       leagueId: args.leagueId,
       type: "team_insights",
