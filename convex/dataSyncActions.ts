@@ -33,21 +33,31 @@ export const syncLeagues = action({
     }
 
     // Fetch games (leagues) from Yahoo
+    console.log("Fetching user games from Yahoo...");
     const gamesXml = await ctx.runAction(api.yahooApi.fetchUserGames, {});
+    console.log("Got games XML, length:", gamesXml.length);
+    
     const gamesData = await parseXml(gamesXml);
+    console.log("Parsed games data:", JSON.stringify(gamesData, null, 2).substring(0, 1000));
 
     // Extract NHL game (game_code: "nhl")
     const games = gamesData.fantasy_content?.users?.user?.games?.game;
     if (!games) {
-      return { synced: 0 };
+      console.warn("No games found in response");
+      return { synced: 0, message: "No games found in Yahoo account" };
     }
 
     const gameArray = Array.isArray(games) ? games : [games];
+    console.log("Found games:", gameArray.map((g: any) => ({ code: g.game_code, key: g.game_key })));
+    
     const nhlGame = gameArray.find((g: any) => g.game_code === "nhl");
 
     if (!nhlGame) {
-      return { synced: 0, message: "No NHL game found" };
+      console.warn("No NHL game found. Available games:", gameArray.map((g: any) => g.game_code));
+      return { synced: 0, message: `No NHL game found. Available games: ${gameArray.map((g: any) => g.game_code).join(", ")}` };
     }
+    
+    console.log("Found NHL game:", nhlGame.game_key);
 
     // Fetch leagues for NHL game
     const leaguesXml = await ctx.runAction(api.yahooApi.fetchLeagues, {

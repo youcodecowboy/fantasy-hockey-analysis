@@ -122,9 +122,20 @@ function DashboardContent() {
   const handleSync = async () => {
     setIsSyncing(true);
     try {
-      await syncLeagues({});
-    } catch (error) {
+      console.log("Starting league sync...");
+      const result = await syncLeagues({});
+      console.log("Sync completed:", result);
+      
+      if (result.synced === 0) {
+        alert(`No leagues synced. ${result.message || "Check console for details."}`);
+      } else {
+        alert(`Successfully synced ${result.synced} league(s)!`);
+        // Refresh the page to show new leagues
+        window.location.reload();
+      }
+    } catch (error: any) {
       console.error("Sync failed:", error);
+      alert(`Sync failed: ${error.message || "Unknown error"}. Check console for details.`);
     } finally {
       setIsSyncing(false);
     }
