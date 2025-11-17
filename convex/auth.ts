@@ -17,8 +17,12 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           throw new Error("Email is required");
         }
 
+        if (!password) {
+          throw new Error("Password is required");
+        }
+
         // Try to retrieve existing account
-        const account = await retrieveAccount(ctx, {
+        const accountResult = await retrieveAccount(ctx, {
           provider: "credentials",
           account: {
             id: email,
@@ -26,12 +30,14 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           },
         });
 
-        if (account) {
-          return { userId: account.user._id };
+        // If account exists and password is valid, return userId
+        if (accountResult && typeof accountResult === "object" && "user" in accountResult) {
+          return { userId: accountResult.user._id };
         }
 
-        // Create new account if password is provided
-        if (password) {
+        // If account doesn't exist, create a new one
+        // accountResult will be "InvalidAccountId" if account doesn't exist
+        if (accountResult === "InvalidAccountId" || accountResult === null) {
           const result = await createAccount(ctx, {
             provider: "credentials",
             account: {
@@ -46,6 +52,14 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           if (result) {
             return { userId: result.user._id };
           }
+        }
+
+        // Handle other error cases
+        if (accountResult === "InvalidSecret") {
+          throw new Error("Invalid password");
+        }
+        if (accountResult === "TooManyFailedAttempts") {
+          throw new Error("Too many failed attempts. Please try again later.");
         }
 
         throw new Error("Invalid credentials");
