@@ -136,7 +136,10 @@ export const syncLeagueTeams = action({
     let syncedCount = 0;
 
     for (const team of teamArray) {
-      const isUserTeam = team.managers?.manager?.some(
+      // Handle managers - can be single object or array
+      const managers = team.managers?.manager;
+      const managerArray = Array.isArray(managers) ? managers : managers ? [managers] : [];
+      const isUserTeam = managerArray.some(
         (m: any) => m.is_current_login === "1"
       ) || false;
 
