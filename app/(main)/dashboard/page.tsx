@@ -1,20 +1,55 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useQuery, useAction } from "convex/react";
+import { useQuery, useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { YahooConnectButton } from "@/components/YahooConnectButton";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [isSyncing, setIsSyncing] = useState(false);
+  const searchParams = useSearchParams();
   const leagues = useQuery(api.dataSync.getUserLeagues);
   const syncLeagues = useAction(api.dataSyncActions.syncLeagues);
+  const storeYahooTokens = useMutation(api.yahoo.storeYahooTokens);
+
+  // Handle Yahoo OAuth callback - store tokens from cookies
+  useEffect(() => {
+    const yahooConnected = searchParams.get("yahoo_connected");
+    if (yahooConnected === "true") {
+      // Read token data from cookie
+      const cookies = document.cookie.split("; ");
+      const tokenCookie = cookies.find((c) => c.startsWith("yahoo_token_data="));
+      
+      if (tokenCookie) {
+        try {
+          const tokenData = JSON.parse(decodeURIComponent(tokenCookie.split("=")[1]));
+          
+          // Store tokens in Convex
+          storeYahooTokens({
+            yahooUserId: tokenData.yahooUserId,
+            accessToken: tokenData.accessToken,
+            refreshToken: tokenData.refreshToken,
+            expiresIn: tokenData.expiresIn,
+            yahooUserInfo: tokenData.yahooUserInfo,
+          }).then(() => {
+            // Clear the cookie
+            document.cookie = "yahoo_token_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            // Remove query param
+            window.history.replaceState({}, "", "/dashboard");
+          }).catch((error) => {
+            console.error("Failed to store Yahoo tokens:", error);
+          });
+        } catch (error) {
+          console.error("Error parsing token data:", error);
+        }
+      }
+    }
+  }, [searchParams, storeYahooTokens]);
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -134,6 +169,14 @@ function LeagueCard({ league }: { league: any }) {
         </div>
       </div>
     </Card>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <DashboardContent />
+    </Suspense>
   );
 }
 

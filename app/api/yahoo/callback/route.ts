@@ -1,8 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
-
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -64,18 +60,29 @@ export async function GET(request: NextRequest) {
 
     const userInfo = await userResponse.json();
 
-    // Store tokens in Convex
-    // Note: In a real app, you'd need to get the current user ID from Convex Auth
-    // For now, we'll need to handle this in a mutation that takes the user ID
-    await convex.mutation(api.yahoo.storeYahooTokens, {
+    // Store tokens via Convex HTTP endpoint
+    // We'll use a temporary session approach - store in cookies and let client handle it
+    const redirectUrl = new URL("/dashboard", request.url);
+    redirectUrl.searchParams.set("yahoo_connected", "true");
+    
+    // Store tokens temporarily in cookies (will be read by client and stored in Convex)
+    const response = NextResponse.redirect(redirectUrl);
+    
+    // Store in cookies temporarily (client will read and store in Convex)
+    response.cookies.set("yahoo_token_data", JSON.stringify({
       yahooUserId: userInfo.sub,
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token,
       expiresIn: tokens.expires_in,
       yahooUserInfo: userInfo,
+    }), {
+      httpOnly: false, // Need client-side access to read and store in Convex
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 300, // 5 minutes - should be processed quickly
     });
 
-    return NextResponse.redirect(new URL("/dashboard?connected=true", request.url));
+    return response;
   } catch (error) {
     console.error("OAuth callback error:", error);
     return NextResponse.redirect(
