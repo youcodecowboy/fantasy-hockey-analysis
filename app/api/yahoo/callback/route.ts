@@ -73,9 +73,6 @@ export async function GET(request: NextRequest) {
     const redirectUrl = new URL("/dashboard", request.url);
     redirectUrl.searchParams.set("yahoo_connected", "true");
     
-    // Store tokens temporarily in cookies (will be read by client and stored in Convex)
-    const response = NextResponse.redirect(redirectUrl);
-    
     // Store in cookies temporarily (client will read and store in Convex)
     const tokenData = {
       yahooUserId: userInfo.sub,
@@ -89,16 +86,29 @@ export async function GET(request: NextRequest) {
     const tokenDataString = JSON.stringify(tokenData);
     
     // Set cookie with proper encoding
-    response.cookies.set("yahoo_token_data", encodeURIComponent(tokenDataString), {
+    // In production, cookies need to be set with secure flag and proper domain
+    const cookieOptions: any = {
       httpOnly: false, // Need client-side access to read and store in Convex
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true, // Always secure in production (HTTPS required)
+      sameSite: "lax" as const,
       path: "/",
       maxAge: 300, // 5 minutes - should be processed quickly
-    });
+    };
+
+    // Create redirect response with cookie
+    const response = NextResponse.redirect(redirectUrl);
+    response.cookies.set("yahoo_token_data", encodeURIComponent(tokenDataString), cookieOptions);
 
     console.log("Yahoo OAuth callback: Tokens stored in cookie, redirecting to dashboard");
     console.log("Cookie set with data length:", tokenDataString.length);
+    console.log("Redirect URL:", redirectUrl.toString());
+    
+    // Also add token data to URL hash as fallback (won't be sent to server, client-side only)
+    // Note: NextResponse.redirect doesn't preserve hash, so we'll handle this client-side
+    // The hash will be added by modifying the Location header
+    const locationHeader = redirectUrl.toString() + `#yahoo_tokens=${encodeURIComponent(tokenDataString)}`;
+    response.headers.set("Location", locationHeader);
+    
     return response;
   } catch (error) {
     console.error("OAuth callback error:", error);

@@ -32,22 +32,39 @@ function DashboardContent() {
     }
     
     if (yahooConnected === "true") {
-      console.log("Yahoo connected flag detected, looking for cookie...");
+      console.log("🔵 Yahoo connected flag detected, looking for tokens...");
       
-      // Read token data from cookie
+      let tokenDataString: string | null = null;
+      
+      // Try to read from cookie first
       const cookies = document.cookie.split("; ");
-      console.log("All cookies:", cookies);
+      console.log("🔵 All cookies:", cookies);
       const tokenCookie = cookies.find((c) => c.startsWith("yahoo_token_data="));
       
       if (tokenCookie) {
-        console.log("Found yahoo_token_data cookie");
+        console.log("✅ Found yahoo_token_data cookie");
+        const cookieValue = tokenCookie.split("=").slice(1).join("=");
+        tokenDataString = decodeURIComponent(cookieValue);
+      } else {
+        // Fallback: try reading from URL hash
+        console.log("⚠️ No cookie found, checking URL hash...");
+        const hash = window.location.hash;
+        if (hash.includes("yahoo_tokens=")) {
+          const match = hash.match(/yahoo_tokens=([^&]+)/);
+          if (match) {
+            console.log("✅ Found tokens in URL hash");
+            tokenDataString = decodeURIComponent(match[1]);
+            // Clear hash from URL
+            window.history.replaceState({}, "", window.location.pathname + window.location.search);
+          }
+        }
+      }
+      
+      if (tokenDataString) {
         try {
-          // Cookie value is URL encoded, so decode it first
-          const cookieValue = tokenCookie.split("=").slice(1).join("="); // Handle values with =
-          const decodedValue = decodeURIComponent(cookieValue);
-          const tokenData = JSON.parse(decodedValue);
+          const tokenData = JSON.parse(tokenDataString);
           
-          console.log("Parsed token data, storing in Convex...", {
+          console.log("✅ Parsed token data, storing in Convex...", {
             yahooUserId: tokenData.yahooUserId,
             hasAccessToken: !!tokenData.accessToken,
             hasRefreshToken: !!tokenData.refreshToken,
@@ -61,9 +78,9 @@ function DashboardContent() {
             expiresIn: tokenData.expiresIn,
             yahooUserInfo: tokenData.yahooUserInfo,
           }).then(() => {
-            console.log("✅ Yahoo tokens stored successfully in Convex");
-            // Clear the cookie
-            document.cookie = "yahoo_token_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            console.log("✅✅ Yahoo tokens stored successfully in Convex");
+            // Clear the cookie if it exists
+            document.cookie = "yahoo_token_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; secure;";
             // Remove query param
             window.history.replaceState({}, "", "/dashboard");
             // Reload to refresh connection status
@@ -74,14 +91,17 @@ function DashboardContent() {
           });
         } catch (error) {
           console.error("❌ Error parsing token data:", error);
-          console.error("Cookie value:", tokenCookie);
+          console.error("Token data string:", tokenDataString?.substring(0, 100));
           alert("Error processing Yahoo connection. Please try again.");
         }
       } else {
-        console.warn("⚠️ No yahoo_token_data cookie found");
+        console.warn("⚠️⚠️ No yahoo_token_data found in cookie or URL hash");
         console.log("Available cookies:", document.cookie);
+        console.log("URL hash:", window.location.hash);
+        console.log("Full URL:", window.location.href);
         // Remove query param
         window.history.replaceState({}, "", "/dashboard");
+        alert("Yahoo tokens not found. Please try connecting again.");
       }
     }
   }, [searchParams, storeYahooTokens]);
