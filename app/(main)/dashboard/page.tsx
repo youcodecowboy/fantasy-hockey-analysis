@@ -44,7 +44,20 @@ function DashboardContent() {
       if (tokenCookie) {
         console.log("✅ Found yahoo_token_data cookie");
         const cookieValue = tokenCookie.split("=").slice(1).join("=");
-        tokenDataString = decodeURIComponent(cookieValue);
+        // Next.js cookies are automatically decoded, but if it's double-encoded, decode twice
+        try {
+          // Try decoding once first
+          const decodedOnce = decodeURIComponent(cookieValue);
+          // If it still looks encoded (starts with %), decode again
+          if (decodedOnce.startsWith("%")) {
+            tokenDataString = decodeURIComponent(decodedOnce);
+          } else {
+            tokenDataString = decodedOnce;
+          }
+        } catch (e) {
+          // If decoding fails, try using the value as-is
+          tokenDataString = cookieValue;
+        }
       } else {
         // Fallback: try reading from URL hash
         console.log("⚠️ No cookie found, checking URL hash...");

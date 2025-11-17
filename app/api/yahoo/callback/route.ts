@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
     const tokenDataString = JSON.stringify(tokenData);
     
     // Set cookie with proper encoding
+    // Note: Next.js cookies handle encoding automatically, so we don't need to encodeURIComponent
     // In production, cookies need to be set with secure flag and proper domain
     const cookieOptions: any = {
       httpOnly: false, // Need client-side access to read and store in Convex
@@ -110,8 +111,9 @@ export async function GET(request: NextRequest) {
     };
 
     // Create redirect response with cookie
+    // Don't encode here - Next.js cookies handle encoding automatically
     const response = NextResponse.redirect(redirectUrl);
-    response.cookies.set("yahoo_token_data", encodeURIComponent(tokenDataString), cookieOptions);
+    response.cookies.set("yahoo_token_data", tokenDataString, cookieOptions);
 
     console.log("Yahoo OAuth callback: Tokens stored in cookie, redirecting to dashboard");
     console.log("Cookie set with data length:", tokenDataString.length);
