@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useConvexAuth, useAction } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useConvexAuth } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const { signIn } = useAuthActions();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -43,33 +44,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Call Convex Auth signIn via HTTP endpoint
-      // Use the catch-all route: /api/auth/auth/signIn -> Convex /http/auth/signIn
-      const response = await fetch("/api/auth/auth/signIn", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          provider: "credentials",
-          params: {
-            email,
-            password,
-          },
-        }),
+      // Use Convex Auth's signIn action from useAuthActions hook
+      await signIn("credentials", {
+        email,
+        password,
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = "Invalid email or password";
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          errorMessage = errorText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
 
       // Wait a bit for auth state to update
       await new Promise((resolve) => setTimeout(resolve, 500));

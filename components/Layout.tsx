@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useConvexAuth } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,10 +14,11 @@ export function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated } = useConvexAuth();
+  const { signOut } = useAuthActions();
 
   const handleSignOut = async () => {
     try {
-      await fetch("/api/auth/signOut", { method: "POST" });
+      await signOut();
       router.push("/login");
     } catch (error) {
       console.error("Sign out failed:", error);
