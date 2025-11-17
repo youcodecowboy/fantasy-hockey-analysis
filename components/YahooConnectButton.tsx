@@ -3,36 +3,28 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "./Button";
+import { CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export function YahooConnectButton() {
   const isConnected = useQuery(api.yahoo.isYahooConnected);
 
   if (isConnected === undefined) {
-    return <Button disabled>Loading...</Button>;
+    return <Button disabled variant="outline">Loading...</Button>;
   }
 
   if (isConnected) {
     return (
-      <div className="flex items-center space-x-2 text-green-600">
-        <svg
-          className="h-5 w-5"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-            clipRule="evenodd"
-          />
-        </svg>
+      <Badge variant="outline" className="gap-1.5 border-green-200 bg-green-50 text-green-700 dark:bg-green-950/20 dark:border-green-800 dark:text-green-400">
+        <CheckCircle2 className="h-3 w-3" />
         <span>Yahoo Connected</span>
-      </div>
+      </Badge>
     );
   }
 
   return (
     <a href="/api/yahoo/authorize">
-      <Button>Connect Yahoo Account</Button>
+      <Button variant="default">Connect Yahoo Account</Button>
     </a>
   );
 }

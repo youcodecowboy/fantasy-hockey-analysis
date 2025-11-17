@@ -159,8 +159,8 @@ function DashboardContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-600 mt-1">Your fantasy hockey overview</p>
+          <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Your fantasy hockey overview</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <YahooConnectButton />
@@ -168,6 +168,7 @@ function DashboardContent() {
             onClick={handleSync}
             isLoading={isSyncing}
             disabled={isSyncing}
+            variant="outline"
           >
             Refresh Data
           </Button>
@@ -198,8 +199,11 @@ function DashboardContent() {
 
           {/* League Cards */}
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Your Leagues</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold tracking-tight">Your Leagues</h2>
+              <p className="text-sm text-muted-foreground mt-1">Manage your fantasy leagues</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {leagues.map((league) => (
                 <LeagueCard key={league._id} league={league} />
               ))}
@@ -239,49 +243,49 @@ function LeagueCard({ league }: { league: any }) {
   }
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-all duration-200 hover:border-primary/50">
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">{league.name}</h3>
-          <p className="text-sm text-slate-500 mt-1">
+          <h3 className="text-lg font-semibold tracking-tight">{league.name}</h3>
+          <p className="text-sm text-muted-foreground mt-1">
             Season {league.season} • Week {league.currentWeek || "N/A"}
           </p>
         </div>
 
         {userTeam ? (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-              <span className="text-sm font-medium text-slate-700">Record</span>
-              <span className="text-lg font-bold text-slate-900">
+          <div className="space-y-2">
+            <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border">
+              <span className="text-sm font-medium">Record</span>
+              <span className="text-lg font-bold">
                 {userTeam.wins}-{userTeam.losses}
                 {userTeam.ties ? `-${userTeam.ties}` : ""}
               </span>
             </div>
             {userTeam.pointsFor !== undefined && (
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">Points For</span>
-                <span className="text-lg font-bold text-slate-900">
+              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border">
+                <span className="text-sm font-medium">Points For</span>
+                <span className="text-lg font-bold">
                   {userTeam.pointsFor.toFixed(1)}
                 </span>
               </div>
             )}
             {userTeam.pointsAgainst !== undefined && (
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                <span className="text-sm font-medium text-slate-700">Points Against</span>
-                <span className="text-lg font-bold text-slate-900">
+              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg border">
+                <span className="text-sm font-medium">Points Against</span>
+                <span className="text-lg font-bold">
                   {userTeam.pointsAgainst.toFixed(1)}
                 </span>
               </div>
             )}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">No team data available</p>
+          <p className="text-sm text-muted-foreground">No team data available</p>
         )}
 
-        <div className="pt-4 border-t border-slate-200">
+        <div className="pt-4 border-t">
           <a
             href={`/free-agents?league=${league._id}`}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
+            className="text-sm text-primary hover:text-primary/80 font-medium inline-flex items-center gap-1 transition-colors"
           >
             View Free Agents
             <span>→</span>

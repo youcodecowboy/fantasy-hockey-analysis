@@ -1,6 +1,7 @@
 "use client";
 
-import { Card } from "./Card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface MatchupCardProps {
   matchup: {
@@ -42,81 +43,82 @@ export function MatchupCard({ matchup, showCategories = false }: MatchupCardProp
   const isLosing = userScore !== undefined && opponentScore !== undefined && userScore < opponentScore;
   const isTied = userScore !== undefined && opponentScore !== undefined && userScore === opponentScore;
 
+  const statusLabel = matchup.status === "postevent" ? "Final" : matchup.status === "midevent" ? "Live" : "Upcoming";
+  const statusVariant = matchup.status === "postevent" ? "secondary" : matchup.status === "midevent" ? "default" : "outline";
+
   return (
     <Card className="overflow-hidden">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-medium text-slate-600">Week {matchup.week}</h3>
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 mt-1">
-              {matchup.status === "postevent" ? "Final" : matchup.status === "midevent" ? "Live" : "Upcoming"}
-            </span>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Week {matchup.week}</h3>
+            <Badge variant={statusVariant as any} className="text-xs">
+              {statusLabel}
+            </Badge>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+
+        {/* User Team */}
+        <div className={`flex items-center justify-between p-4 rounded-lg border-2 transition-colors ${
+          isWinning ? "bg-green-50/50 border-green-200 dark:bg-green-950/20" :
+          isLosing ? "bg-red-50/50 border-red-200 dark:bg-red-950/20" :
+          isTied ? "bg-yellow-50/50 border-yellow-200 dark:bg-yellow-950/20" :
+          "bg-muted/50 border-border"
+        }`}>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">{userTeam.name}</span>
+              <Badge variant="outline" className="text-xs">You</Badge>
+            </div>
+            <div className="text-sm text-muted-foreground mt-1">
+              {userTeam.wins}-{userTeam.losses}
+              {userTeam.ties ? `-${userTeam.ties}` : ""}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className={`text-3xl font-bold ${
+              isWinning ? "text-green-600 dark:text-green-400" :
+              isLosing ? "text-red-600 dark:text-red-400" :
+              isTied ? "text-yellow-600 dark:text-yellow-400" :
+              "text-foreground"
+            }`}>
+              {userScore !== undefined ? userScore.toFixed(1) : "—"}
+            </div>
           </div>
         </div>
 
-        {/* Teams */}
-        <div className="space-y-4">
-          {/* User Team */}
-          <div className={`flex items-center justify-between p-4 rounded-lg ${
-            isWinning ? "bg-green-50 border-2 border-green-200" :
-            isLosing ? "bg-red-50 border-2 border-red-200" :
-            isTied ? "bg-yellow-50 border-2 border-yellow-200" :
-            "bg-slate-50 border-2 border-slate-200"
-          }`}>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-900">{userTeam.name}</span>
-                <span className="text-xs text-slate-500">(You)</span>
-              </div>
-              <div className="text-sm text-slate-600 mt-1">
-                {userTeam.wins}-{userTeam.losses}
-                {userTeam.ties ? `-${userTeam.ties}` : ""}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className={`text-2xl font-bold ${
-                isWinning ? "text-green-700" :
-                isLosing ? "text-red-700" :
-                isTied ? "text-yellow-700" :
-                "text-slate-700"
-              }`}>
-                {userScore !== undefined ? userScore.toFixed(1) : "—"}
-              </div>
+        {/* VS Divider */}
+        <div className="flex items-center justify-center py-2">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">VS</div>
+        </div>
+
+        {/* Opponent Team */}
+        <div className="flex items-center justify-between p-4 rounded-lg bg-card border-2 border-border">
+          <div className="flex-1">
+            <div className="font-semibold text-foreground">{opponentTeam.name}</div>
+            <div className="text-sm text-muted-foreground mt-1">
+              {opponentTeam.wins}-{opponentTeam.losses}
+              {opponentTeam.ties ? `-${opponentTeam.ties}` : ""}
             </div>
           </div>
-
-          {/* VS Divider */}
-          <div className="flex items-center justify-center">
-            <div className="text-xs font-semibold text-slate-400">VS</div>
-          </div>
-
-          {/* Opponent Team */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-white border-2 border-slate-200">
-            <div className="flex-1">
-              <div className="font-semibold text-slate-900">{opponentTeam.name}</div>
-              <div className="text-sm text-slate-600 mt-1">
-                {opponentTeam.wins}-{opponentTeam.losses}
-                {opponentTeam.ties ? `-${opponentTeam.ties}` : ""}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-slate-700">
-                {opponentScore !== undefined ? opponentScore.toFixed(1) : "—"}
-              </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-foreground">
+              {opponentScore !== undefined ? opponentScore.toFixed(1) : "—"}
             </div>
           </div>
         </div>
 
         {/* Category breakdown placeholder */}
         {showCategories && (
-          <div className="mt-4 pt-4 border-t border-slate-200">
-            <div className="text-xs text-slate-500 text-center">
+          <div className="pt-4 border-t">
+            <div className="text-xs text-muted-foreground text-center">
               Category breakdown coming soon
             </div>
           </div>
         )}
-      </div>
+      </CardContent>
     </Card>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { ReactNode } from "react";
+import { Card as ShadcnCard, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface CardProps {
   children: ReactNode;
@@ -10,14 +12,14 @@ interface CardProps {
 
 export function Card({ children, className = "", title }: CardProps) {
   return (
-    <div
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 ${className}`}
-    >
+    <ShadcnCard className={cn(className)}>
       {title && (
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{title}</h2>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
       )}
-      {children}
-    </div>
+      <CardContent className={title ? "" : "p-6"}>{children}</CardContent>
+    </ShadcnCard>
   );
 }
 
