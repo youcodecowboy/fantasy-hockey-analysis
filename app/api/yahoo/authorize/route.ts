@@ -14,6 +14,9 @@ export async function GET(request: NextRequest) {
   // Generate a random state for CSRF protection
   const state = Math.random().toString(36).substring(2, 15);
 
+  // Log the redirect URI for debugging
+  console.log("Yahoo OAuth authorize - Redirect URI:", redirectUri);
+  
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
@@ -23,6 +26,7 @@ export async function GET(request: NextRequest) {
   });
 
   const authUrl = `https://api.login.yahoo.com/oauth2/request_auth?${params.toString()}`;
+  console.log("Yahoo OAuth authorize - Full auth URL:", authUrl);
 
   // Store state in a cookie or session for verification
   const response = NextResponse.redirect(authUrl);
