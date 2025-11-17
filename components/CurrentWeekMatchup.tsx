@@ -66,8 +66,6 @@ export function CurrentWeekMatchup({ leagueId }: CurrentWeekMatchupProps) {
         </Button>
       </div>
       <MatchupCard matchup={matchup} showCategories={true} />
-      {/* Pass matchup ID to OtherMatchups via a callback or prop */}
-      <input type="hidden" id="current-matchup-id" value={matchup._id} />
     </div>
   );
 }
