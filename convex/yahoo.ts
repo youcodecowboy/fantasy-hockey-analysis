@@ -3,6 +3,9 @@ import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
+// Type assertion for Next.js build (Convex types are generated at runtime)
+const convexApi = api as any;
+
 interface YahooTokenResponse {
   access_token: string;
   refresh_token?: string;
@@ -148,14 +151,14 @@ export const getValidAccessToken = action({
       throw new Error("Not authenticated");
     }
 
-    const tokenInfo = await ctx.runQuery(api.yahoo.getYahooToken, {});
+    const tokenInfo = await ctx.runQuery(convexApi.yahoo.getYahooToken, {});
 
     if (!tokenInfo) {
       throw new Error("No Yahoo token found. Please connect your Yahoo account.");
     }
 
     if (tokenInfo.needsRefresh) {
-      return await ctx.runMutation(api.yahoo.refreshYahooToken, {});
+      return await ctx.runMutation(convexApi.yahoo.refreshYahooToken, {});
     }
 
     return tokenInfo.accessToken;

@@ -5,10 +5,10 @@ import { api } from "@/convex/_generated/api";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function OpponentsPage() {
+function OpponentsContent() {
   const searchParams = useSearchParams();
   const leagueIdParam = searchParams.get("league");
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(
@@ -206,6 +206,14 @@ function OpponentCard({
         )}
       </div>
     </Card>
+  );
+}
+
+export default function OpponentsPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <OpponentsContent />
+    </Suspense>
   );
 }
 

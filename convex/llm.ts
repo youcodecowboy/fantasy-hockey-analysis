@@ -67,7 +67,7 @@ export const analyzeFreeAgents = action({
     }
 
     // Get user
-    const user = await ctx.runQuery(api.dataSync.getUserByIdQuery, {
+    const user = await ctx.runQuery(convexApi.dataSync.getUserByIdQuery, {
       userId,
     });
 
@@ -76,7 +76,7 @@ export const analyzeFreeAgents = action({
     }
 
     // Get league
-    const league = await ctx.runQuery(api.dataSync.getLeagueQuery, {
+    const league = await ctx.runQuery(convexApi.dataSync.getLeagueQuery, {
       leagueId: args.leagueId,
     });
 
@@ -85,7 +85,7 @@ export const analyzeFreeAgents = action({
     }
 
     // Get user's team
-    const userTeam = await ctx.runQuery(api.dataSync.getUserTeam, {
+    const userTeam = await ctx.runQuery(convexApi.dataSync.getUserTeam, {
       leagueId: args.leagueId,
     });
 
@@ -149,20 +149,20 @@ export const analyzeOpponent = action({
     week: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       throw new Error("Not authenticated");
     }
 
-    const user = await ctx.runQuery(api.dataSync.getUserByEmailQuery, {
-      email: identity.email!,
+    const user = await ctx.runQuery(convexApi.dataSync.getUserByIdQuery, {
+      userId,
     });
 
     if (!user) {
       throw new Error("User not found");
     }
 
-    const league = await ctx.runQuery(api.dataSync.getLeagueQuery, {
+    const league = await ctx.runQuery(convexApi.dataSync.getLeagueQuery, {
       leagueId: args.leagueId,
     });
 
@@ -170,7 +170,7 @@ export const analyzeOpponent = action({
       throw new Error("League not found");
     }
 
-    const userTeam = await ctx.runQuery(api.dataSync.getUserTeam, {
+    const userTeam = await ctx.runQuery(convexApi.dataSync.getUserTeam, {
       leagueId: args.leagueId,
     });
 
@@ -233,20 +233,20 @@ export const analyzeTeamPerformance = action({
     leagueId: v.id("leagues"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       throw new Error("Not authenticated");
     }
 
-    const user = await ctx.runQuery(api.dataSync.getUserByEmailQuery, {
-      email: identity.email!,
+    const user = await ctx.runQuery(convexApi.dataSync.getUserByIdQuery, {
+      userId,
     });
 
     if (!user) {
       throw new Error("User not found");
     }
 
-    const league = await ctx.runQuery(api.dataSync.getLeagueQuery, {
+    const league = await ctx.runQuery(convexApi.dataSync.getLeagueQuery, {
       leagueId: args.leagueId,
     });
 
@@ -254,7 +254,7 @@ export const analyzeTeamPerformance = action({
       throw new Error("League not found");
     }
 
-    const userTeam = await ctx.runQuery(api.dataSync.getUserTeam, {
+    const userTeam = await ctx.runQuery(convexApi.dataSync.getUserTeam, {
       leagueId: args.leagueId,
     });
 

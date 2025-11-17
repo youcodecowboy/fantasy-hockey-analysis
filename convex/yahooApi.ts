@@ -2,6 +2,9 @@ import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { v } from "convex/values";
 
+// Type assertion for Next.js build (Convex types are generated at runtime)
+const convexApi = api as any;
+
 const YAHOO_FANTASY_BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 
 interface YahooApiResponse<T> {
@@ -132,7 +135,7 @@ interface YahooMatchup {
 export const fetchUserGames = action({
   args: {},
   handler: async (ctx) => {
-    const accessToken = await ctx.runAction(api.yahoo.getValidAccessToken, {});
+    const accessToken = await ctx.runAction(convexApi.yahoo.getValidAccessToken, {});
 
     const response = await fetch(
       `${YAHOO_FANTASY_BASE_URL}/users;use_login=1/games`,
@@ -161,7 +164,7 @@ export const fetchLeagues = action({
     gameKey: v.string(),
   },
   handler: async (ctx, args) => {
-    const accessToken = await ctx.runAction(api.yahoo.getValidAccessToken, {});
+    const accessToken = await ctx.runAction(convexApi.yahoo.getValidAccessToken, {});
 
     const response = await fetch(
       `${YAHOO_FANTASY_BASE_URL}/users;use_login=1/games;game_keys=${args.gameKey}/leagues`,
@@ -188,7 +191,7 @@ export const fetchLeague = action({
     leagueKey: v.string(),
   },
   handler: async (ctx, args) => {
-    const accessToken = await ctx.runAction(api.yahoo.getValidAccessToken, {});
+    const accessToken = await ctx.runAction(convexApi.yahoo.getValidAccessToken, {});
 
     const response = await fetch(
       `${YAHOO_FANTASY_BASE_URL}/league/${args.leagueKey}`,
@@ -215,7 +218,7 @@ export const fetchLeagueTeams = action({
     leagueKey: v.string(),
   },
   handler: async (ctx, args) => {
-    const accessToken = await ctx.runAction(api.yahoo.getValidAccessToken, {});
+    const accessToken = await ctx.runAction(convexApi.yahoo.getValidAccessToken, {});
 
     const response = await fetch(
       `${YAHOO_FANTASY_BASE_URL}/league/${args.leagueKey}/teams`,
@@ -243,7 +246,7 @@ export const fetchTeamRoster = action({
     week: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const accessToken = await ctx.runAction(api.yahoo.getValidAccessToken, {});
+    const accessToken = await ctx.runAction(convexApi.yahoo.getValidAccessToken, {});
 
     const weekParam = args.week ? `;week=${args.week}` : "";
     const response = await fetch(
@@ -274,7 +277,7 @@ export const fetchFreeAgents = action({
     count: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const accessToken = await ctx.runAction(api.yahoo.getValidAccessToken, {});
+    const accessToken = await ctx.runAction(convexApi.yahoo.getValidAccessToken, {});
 
     const params = new URLSearchParams();
     if (args.position) params.append("position", args.position);
@@ -307,7 +310,7 @@ export const fetchMatchups = action({
     week: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const accessToken = await ctx.runAction(api.yahoo.getValidAccessToken, {});
+    const accessToken = await ctx.runAction(convexApi.yahoo.getValidAccessToken, {});
 
     const weekParam = args.week ? `;week=${args.week}` : "";
     const response = await fetch(
@@ -336,7 +339,7 @@ export const fetchPlayerStats = action({
     week: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const accessToken = await ctx.runAction(api.yahoo.getValidAccessToken, {});
+    const accessToken = await ctx.runAction(convexApi.yahoo.getValidAccessToken, {});
 
     const weekParam = args.week ? `;week=${args.week}` : "";
     const response = await fetch(

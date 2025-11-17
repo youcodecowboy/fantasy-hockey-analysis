@@ -6,10 +6,10 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorMessage } from "@/components/ErrorMessage";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function FreeAgentsPage() {
+function FreeAgentsContent() {
   const searchParams = useSearchParams();
   const leagueIdParam = searchParams.get("league");
   const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(
@@ -173,6 +173,14 @@ function PlayerCard({ player }: { player: any }) {
         )}
       </div>
     </Card>
+  );
+}
+
+export default function FreeAgentsPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <FreeAgentsContent />
+    </Suspense>
   );
 }
 
