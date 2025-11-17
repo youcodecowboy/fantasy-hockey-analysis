@@ -33,12 +33,12 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.17",
     "together-ai": "^0.30.0",
     "typescript": "^5.9.3",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
+    "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7"
   }
 }
