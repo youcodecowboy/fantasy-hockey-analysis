@@ -6,7 +6,11 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const path = url.pathname.replace("/api/auth", "");
-  const response = await fetch(`${process.env.NEXT_PUBLIC_CONVEX_URL}${path}${url.search}`, {
+  
+  // Convex HTTP routes are at /http/*, so prepend /http to the path
+  const convexPath = `/http${path}`;
+  
+  const response = await fetch(`${process.env.NEXT_PUBLIC_CONVEX_URL}${convexPath}${url.search}`, {
     method: "GET",
     headers: request.headers,
   });
@@ -20,8 +24,8 @@ export async function POST(request: NextRequest) {
   const url = new URL(request.url);
   const path = url.pathname.replace("/api/auth", "");
   
-  // Convex Auth routes are at /auth/*, so if path doesn't start with /auth, prepend it
-  const convexPath = path.startsWith("/auth") ? path : `/http/auth${path}`;
+  // Convex HTTP routes are at /http/*, so prepend /http to the path
+  const convexPath = `/http${path}`;
   
   const body = await request.text();
   const response = await fetch(`${process.env.NEXT_PUBLIC_CONVEX_URL}${convexPath}${url.search}`, {
