@@ -32,16 +32,24 @@ function DashboardContent() {
     }
     
     if (yahooConnected === "true") {
+      console.log("Yahoo connected flag detected, looking for cookie...");
+      
       // Read token data from cookie
       const cookies = document.cookie.split("; ");
+      console.log("All cookies:", cookies);
       const tokenCookie = cookies.find((c) => c.startsWith("yahoo_token_data="));
       
       if (tokenCookie) {
+        console.log("Found yahoo_token_data cookie");
         try {
           const cookieValue = tokenCookie.split("=").slice(1).join("="); // Handle values with =
           const tokenData = JSON.parse(decodeURIComponent(cookieValue));
           
-          console.log("Storing Yahoo tokens...");
+          console.log("Parsed token data, storing in Convex...", {
+            yahooUserId: tokenData.yahooUserId,
+            hasAccessToken: !!tokenData.accessToken,
+            hasRefreshToken: !!tokenData.refreshToken,
+          });
           
           // Store tokens in Convex
           storeYahooTokens({
@@ -51,7 +59,7 @@ function DashboardContent() {
             expiresIn: tokenData.expiresIn,
             yahooUserInfo: tokenData.yahooUserInfo,
           }).then(() => {
-            console.log("Yahoo tokens stored successfully");
+            console.log("✅ Yahoo tokens stored successfully in Convex");
             // Clear the cookie
             document.cookie = "yahoo_token_data=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
             // Remove query param
@@ -59,15 +67,17 @@ function DashboardContent() {
             // Reload to refresh connection status
             window.location.reload();
           }).catch((error) => {
-            console.error("Failed to store Yahoo tokens:", error);
+            console.error("❌ Failed to store Yahoo tokens:", error);
             alert(`Failed to store Yahoo tokens: ${error.message}`);
           });
         } catch (error) {
-          console.error("Error parsing token data:", error);
+          console.error("❌ Error parsing token data:", error);
+          console.error("Cookie value:", tokenCookie);
           alert("Error processing Yahoo connection. Please try again.");
         }
       } else {
-        console.warn("No yahoo_token_data cookie found");
+        console.warn("⚠️ No yahoo_token_data cookie found");
+        console.log("Available cookies:", document.cookie);
         // Remove query param
         window.history.replaceState({}, "", "/dashboard");
       }

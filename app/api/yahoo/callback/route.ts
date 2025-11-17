@@ -6,13 +6,17 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
+  console.log("Yahoo OAuth callback received:", { code: code ? "present" : "missing", state, error });
+
   if (error) {
+    console.error("Yahoo OAuth error:", error);
     return NextResponse.redirect(
       new URL(`/dashboard?error=${encodeURIComponent(error)}`, request.url)
     );
   }
 
   if (!code) {
+    console.error("Yahoo OAuth callback: No code received");
     return NextResponse.redirect(
       new URL("/dashboard?error=no_code", request.url)
     );
@@ -44,6 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     const tokens = await tokenResponse.json();
+    console.log("Yahoo token exchange successful");
 
     // Get user info from Yahoo
     const userResponse = await fetch("https://api.login.yahoo.com/openid/v1/userinfo", {
@@ -53,12 +58,15 @@ export async function GET(request: NextRequest) {
     });
 
     if (!userResponse.ok) {
+      const errorText = await userResponse.text();
+      console.error("Failed to get Yahoo user info:", errorText);
       return NextResponse.redirect(
         new URL("/dashboard?error=user_info_failed", request.url)
       );
     }
 
     const userInfo = await userResponse.json();
+    console.log("Yahoo user info retrieved:", { userId: userInfo.sub, email: userInfo.email });
 
     // Store tokens via Convex HTTP endpoint
     // We'll use a temporary session approach - store in cookies and let client handle it
