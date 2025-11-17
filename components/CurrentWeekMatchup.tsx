@@ -60,7 +60,6 @@ export function CurrentWeekMatchup({ leagueId }: CurrentWeekMatchupProps) {
           isLoading={isSyncing}
           disabled={isSyncing}
           variant="secondary"
-          size="sm"
         >
           Refresh
         </Button>
