@@ -267,3 +267,155 @@ export const getFreeAgents = query({
   },
 });
 
+// Upsert a matchup
+export const upsertMatchup = mutation({
+  args: {
+    leagueId: v.id("leagues"),
+    week: v.number(),
+    team1Id: v.id("teams"),
+    team2Id: v.id("teams"),
+    team1Score: v.optional(v.number()),
+    team2Score: v.optional(v.number()),
+    isPlayoffs: v.boolean(),
+    isConsolation: v.boolean(),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("matchups")
+      .withIndex("by_league_week", (q) =>
+        q.eq("leagueId", args.leagueId).eq("week", args.week)
+      )
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("team1Id"), args.team1Id),
+          q.eq(q.field("team2Id"), args.team1Id)
+        )
+      )
+      .first();
+
+    const now = Date.now();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        team1Score: args.team1Score,
+        team2Score: args.team2Score,
+        isPlayoffs: args.isPlayoffs,
+        isConsolation: args.isConsolation,
+        status: args.status,
+        lastSyncedAt: now,
+        updatedAt: now,
+      });
+      return existing._id;
+    } else {
+      return await ctx.db.insert("matchups", {
+        leagueId: args.leagueId,
+        week: args.week,
+        team1Id: args.team1Id,
+        team2Id: args.team2Id,
+        team1Score: args.team1Score,
+        team2Score: args.team2Score,
+        isPlayoffs: args.isPlayoffs,
+        isConsolation: args.isConsolation,
+        status: args.status,
+        lastSyncedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+  },
+});
+
+// Get matchups for a league and week
+export const getMatchups = query({
+  args: {
+    leagueId: v.id("leagues"),
+    week: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    let query = ctx.db
+      .query("matchups")
+      .withIndex("by_league", (q) => q.eq("leagueId", args.leagueId));
+
+    if (args.week !== undefined) {
+      query = query.filter((q) => q.eq(q.field("week"), args.week));
+    }
+
+    return await query.collect();
+  },
+});
+
+// Get current week matchup for user's team
+export const getCurrentWeekMatchup = query({
+  args: {
+    leagueId: v.id("leagues"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return null;
+    }
+
+    // Get user's team
+    const userTeam = await ctx.db
+      .query("teams")
+      .withIndex("by_league", (q) => q.eq("leagueId", args.leagueId))
+      .filter((q) => q.eq(q.field("isUserTeam"), true))
+      .first();
+
+    if (!userTeam) {
+      return null;
+    }
+
+    // Get league to find current week
+    const league = await ctx.db.get(args.leagueId);
+    if (!league || !league.currentWeek) {
+      return null;
+    }
+
+    // Find matchup for current week involving user's team
+    const matchup = await ctx.db
+      .query("matchups")
+      .withIndex("by_league_week", (q) =>
+        q.eq("leagueId", args.leagueId).eq("week", league.currentWeek)
+      )
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("team1Id"), userTeam._id),
+          q.eq(q.field("team2Id"), userTeam._id)
+        )
+      )
+      .first();
+
+    if (!matchup) {
+      return null;
+    }
+
+    // Get team details
+    const team1 = await ctx.db.get(matchup.team1Id);
+    const team2 = await ctx.db.get(matchup.team2Id);
+
+    return {
+      ...matchup,
+      team1,
+      team2,
+      isUserTeam1: matchup.team1Id === userTeam._id,
+    };
+  },
+});
+
+// Get team by Yahoo key
+export const getTeamByYahooKey = query({
+  args: {
+    leagueId: v.id("leagues"),
+    yahooTeamKey: v.string(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("teams")
+      .withIndex("by_league", (q) => q.eq("leagueId", args.leagueId))
+      .filter((q) => q.eq(q.field("yahooTeamKey"), args.yahooTeamKey))
+      .first();
+  },
+});
+

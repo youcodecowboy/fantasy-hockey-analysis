@@ -7,6 +7,8 @@ import { Button } from "@/components/Button";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { YahooConnectButton } from "@/components/YahooConnectButton";
+import { CurrentWeekMatchup } from "@/components/CurrentWeekMatchup";
+import { OtherMatchups } from "@/components/OtherMatchups";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -149,10 +151,17 @@ function DashboardContent() {
     );
   }
 
+  // Get first league for now (we'll add league selection later)
+  const primaryLeague = leagues.length > 0 ? leagues[0] : null;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+          <p className="text-slate-600 mt-1">Your fantasy hockey overview</p>
+        </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <YahooConnectButton />
           <Button
@@ -167,20 +176,37 @@ function DashboardContent() {
 
       {leagues.length === 0 ? (
         <Card>
-          <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">
+          <div className="text-center py-12">
+            <p className="text-slate-600 mb-4 text-lg">
               No leagues found. Connect your Yahoo account and sync your data.
             </p>
             <YahooConnectButton />
           </div>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {leagues.map((league) => (
-            <LeagueCard key={league._id} league={league} />
-          ))}
+      ) : primaryLeague ? (
+        <div className="space-y-8">
+          {/* Current Week Matchup */}
+          <CurrentWeekMatchup leagueId={primaryLeague._id} />
+
+          {/* Other Matchups */}
+          {primaryLeague.currentWeek && (
+            <OtherMatchups
+              leagueId={primaryLeague._id}
+              currentWeek={primaryLeague.currentWeek}
+            />
+          )}
+
+          {/* League Cards */}
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">Your Leagues</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {leagues.map((league) => (
+                <LeagueCard key={league._id} league={league} />
+              ))}
+            </div>
+          </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -199,51 +225,52 @@ function LeagueCard({ league }: { league: any }) {
   }
 
   return (
-    <Card>
+    <Card className="hover:shadow-lg transition-shadow">
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{league.name}</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-lg font-semibold text-slate-900">{league.name}</h3>
+          <p className="text-sm text-slate-500 mt-1">
             Season {league.season} • Week {league.currentWeek || "N/A"}
           </p>
         </div>
 
         {userTeam ? (
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Record</span>
-              <span className="font-semibold">
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+              <span className="text-sm font-medium text-slate-700">Record</span>
+              <span className="text-lg font-bold text-slate-900">
                 {userTeam.wins}-{userTeam.losses}
                 {userTeam.ties ? `-${userTeam.ties}` : ""}
               </span>
             </div>
             {userTeam.pointsFor !== undefined && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Points For</span>
-                <span className="font-semibold">
+              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                <span className="text-sm font-medium text-slate-700">Points For</span>
+                <span className="text-lg font-bold text-slate-900">
                   {userTeam.pointsFor.toFixed(1)}
                 </span>
               </div>
             )}
             {userTeam.pointsAgainst !== undefined && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Points Against</span>
-                <span className="font-semibold">
+              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                <span className="text-sm font-medium text-slate-700">Points Against</span>
+                <span className="text-lg font-bold text-slate-900">
                   {userTeam.pointsAgainst.toFixed(1)}
                 </span>
               </div>
             )}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No team data available</p>
+          <p className="text-sm text-slate-500">No team data available</p>
         )}
 
-        <div className="pt-4 border-t border-gray-200">
+        <div className="pt-4 border-t border-slate-200">
           <a
             href={`/free-agents?league=${league._id}`}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
           >
-            View Free Agents →
+            View Free Agents
+            <span>→</span>
           </a>
         </div>
       </div>

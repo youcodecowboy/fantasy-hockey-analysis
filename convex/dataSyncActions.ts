@@ -160,6 +160,133 @@ export const syncLeagueTeams = action({
   },
 });
 
+// Sync matchups for a league
+export const syncLeagueMatchups = action({
+  args: {
+    leagueId: v.id("leagues"),
+    week: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const league = await ctx.runQuery(api.dataSync.getLeagueQuery, {
+      leagueId: args.leagueId,
+    });
+
+    if (!league) {
+      throw new Error("League not found");
+    }
+
+    // Fetch matchups from Yahoo
+    const matchupsXml = await ctx.runAction(api.yahooApi.fetchMatchups, {
+      leagueKey: league.yahooLeagueKey,
+      week: args.week,
+    });
+    const matchupsData = await parseXml(matchupsXml);
+
+    // Parse matchups structure
+    const scoreboard = matchupsData.fantasy_content?.league?.scoreboard;
+    if (!scoreboard) {
+      return { synced: 0, message: "No scoreboard data found" };
+    }
+
+    const matchups = scoreboard.matchups?.matchup;
+    if (!matchups) {
+      return { synced: 0, message: "No matchups found" };
+    }
+
+    const matchupArray = Array.isArray(matchups) ? matchups : [matchups];
+    let syncedCount = 0;
+
+    for (const matchup of matchupArray) {
+      const week = parseInt(matchup.week || scoreboard.week || "1");
+      const team1 = matchup.teams?.["0"] || matchup.teams?.team?.[0];
+      const team2 = matchup.teams?.["1"] || matchup.teams?.team?.[1];
+
+      if (!team1 || !team2) {
+        console.warn("Matchup missing teams:", matchup);
+        continue;
+      }
+
+      // Find teams by Yahoo key
+      const allTeams = await ctx.runQuery(api.dataSync.getLeagueTeams, {
+        leagueId: args.leagueId,
+      });
+      
+      const team1Record = allTeams.find((t: any) => t.yahooTeamKey === team1.team_key);
+      const team2Record = allTeams.find((t: any) => t.yahooTeamKey === team2.team_key);
+
+      if (!team1Record || !team2Record) {
+        // Teams might not be synced yet, sync them first
+        await ctx.runAction(api.dataSyncActions.syncLeagueTeams, {
+          leagueId: args.leagueId,
+        });
+        // Retry getting teams
+        const allTeamsRetry = await ctx.runQuery(api.dataSync.getLeagueTeams, {
+          leagueId: args.leagueId,
+        });
+        const team1Retry = allTeamsRetry.find((t: any) => t.yahooTeamKey === team1.team_key);
+        const team2Retry = allTeamsRetry.find((t: any) => t.yahooTeamKey === team2.team_key);
+        if (!team1Retry || !team2Retry) {
+          console.warn("Could not find teams after sync:", team1.team_key, team2.team_key);
+          continue;
+        }
+        
+        // Use retry teams
+        const team1Final = team1Retry;
+        const team2Final = team2Retry;
+
+        // Calculate scores from team stats
+        const team1Stats = team1.team_stats?.stats || [];
+        const team2Stats = team2.team_stats?.stats || [];
+        
+        // Find total points stat (stat_id "1" is usually total points)
+        const team1Score = parseFloat(team1Stats.find((s: any) => s.stat_id === "1")?.value || "0");
+        const team2Score = parseFloat(team2Stats.find((s: any) => s.stat_id === "1")?.value || "0");
+
+        await ctx.runMutation(api.dataSync.upsertMatchup, {
+          leagueId: args.leagueId,
+          week,
+          team1Id: team1Final._id,
+          team2Id: team2Final._id,
+          team1Score,
+          team2Score,
+          isPlayoffs: matchup.is_playoffs === "1",
+          isConsolation: matchup.is_consolation === "1",
+          status: matchup.status || "completed",
+        });
+      } else {
+        // Use original teams
+        // Calculate scores from team stats
+        const team1Stats = team1.team_stats?.stats || [];
+        const team2Stats = team2.team_stats?.stats || [];
+        
+        // Find total points stat (stat_id "1" is usually total points)
+        const team1Score = parseFloat(team1Stats.find((s: any) => s.stat_id === "1")?.value || "0");
+        const team2Score = parseFloat(team2Stats.find((s: any) => s.stat_id === "1")?.value || "0");
+
+        await ctx.runMutation(api.dataSync.upsertMatchup, {
+          leagueId: args.leagueId,
+          week,
+          team1Id: team1Record._id,
+          team2Id: team2Record._id,
+          team1Score,
+          team2Score,
+          isPlayoffs: matchup.is_playoffs === "1",
+          isConsolation: matchup.is_consolation === "1",
+          status: matchup.status || "completed",
+        });
+      }
+      syncedCount++;
+    }
+
+    return { synced: syncedCount };
+  },
+});
+
 // Sync free agents
 export const syncFreeAgents = action({
   args: {
@@ -216,4 +343,3 @@ export const syncFreeAgents = action({
     return { synced: syncedCount };
   },
 });
-
