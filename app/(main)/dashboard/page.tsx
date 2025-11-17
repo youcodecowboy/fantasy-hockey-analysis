@@ -190,7 +190,7 @@ function DashboardContent() {
 
           {/* Other Matchups */}
           {primaryLeague.currentWeek && (
-            <OtherMatchups
+            <OtherMatchupsWrapper
               leagueId={primaryLeague._id}
               currentWeek={primaryLeague.currentWeek}
             />
@@ -208,6 +208,20 @@ function DashboardContent() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function OtherMatchupsWrapper({ leagueId, currentWeek }: { leagueId: string; currentWeek: number }) {
+  const currentMatchup = useQuery(api.dataSync.getCurrentWeekMatchup, {
+    leagueId: leagueId as any,
+  });
+
+  return (
+    <OtherMatchups
+      leagueId={leagueId}
+      currentWeek={currentWeek}
+      excludeMatchupId={currentMatchup?._id}
+    />
   );
 }
 

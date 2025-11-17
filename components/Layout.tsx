@@ -32,11 +32,11 @@ export function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-xl font-bold text-gray-900">Fantasy Hockey</h1>
+            <h1 className="text-xl font-bold text-slate-900">Fantasy Hockey</h1>
             <div className="flex items-center space-x-4">
               <nav className="flex space-x-1">
                 {navItems.map((item) => {
@@ -48,7 +48,7 @@ export function Layout({ children }: LayoutProps) {
                       className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         isActive
                           ? "bg-blue-100 text-blue-700"
-                          : "text-gray-600 hover:bg-gray-100"
+                          : "text-slate-600 hover:bg-slate-100"
                       }`}
                     >
                       <span className="hidden sm:inline">{item.label}</span>
@@ -60,7 +60,7 @@ export function Layout({ children }: LayoutProps) {
               {isAuthenticated && (
                 <button
                   onClick={handleSignOut}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900"
+                  className="px-3 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
                 >
                   Sign Out
                 </button>
@@ -70,13 +70,13 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
 
-      <footer className="bg-white border-t border-gray-200 mt-auto">
+      <footer className="bg-white border-t border-slate-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-slate-500">
             Fantasy Hockey Analysis App
           </p>
         </div>
