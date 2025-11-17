@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: "fspt-r",
+    scope: "fspt-r openid", // Added openid scope for user info
     state,
   });
 
