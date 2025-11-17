@@ -1,10 +1,9 @@
 "use client";
 
-import { useQuery, useAction } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { MatchupCard } from "./MatchupCard";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { useState } from "react";
 
 interface OtherMatchupsProps {
   leagueId: string;
@@ -26,13 +25,15 @@ export function OtherMatchups({ leagueId, currentWeek, excludeMatchupId }: Other
     );
   }
 
-  // Filter out the current user's matchup
-  const otherMatchups = matchups.filter((m) => m._id !== excludeMatchupId);
+  // Filter out the current user's matchup and matchups without team data
+  const otherMatchups = matchups
+    .filter((m) => m._id !== excludeMatchupId)
+    .filter((m) => m.team1 && m.team2);
 
   if (otherMatchups.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-slate-600">No other matchups this week.</p>
+        <p className="text-muted-foreground">No other matchups this week.</p>
       </div>
     );
   }
@@ -45,7 +46,13 @@ export function OtherMatchups({ leagueId, currentWeek, excludeMatchupId }: Other
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {otherMatchups.map((matchup) => (
-          <MatchupCard key={matchup._id} matchup={matchup} />
+          <MatchupCard 
+            key={matchup._id} 
+            matchup={{
+              ...matchup,
+              isUserTeam1: false, // These are not user's matchups
+            }} 
+          />
         ))}
       </div>
     </div>

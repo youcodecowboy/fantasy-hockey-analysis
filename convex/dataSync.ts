@@ -341,7 +341,20 @@ export const getMatchups = query({
       query = query.filter((q) => q.eq(q.field("week"), args.week));
     }
 
-    return await query.collect();
+    const matchups = await query.collect();
+    
+    // Fetch team data for each matchup
+    return await Promise.all(
+      matchups.map(async (matchup) => {
+        const team1 = await ctx.db.get(matchup.team1Id);
+        const team2 = await ctx.db.get(matchup.team2Id);
+        return {
+          ...matchup,
+          team1,
+          team2,
+        };
+      })
+    );
   },
 });
 
