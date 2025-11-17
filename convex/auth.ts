@@ -22,47 +22,47 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         }
 
         // Try to retrieve existing account
-        const accountResult = await retrieveAccount(ctx, {
-          provider: "credentials",
-          account: {
-            id: email,
-            secret: password,
-          },
-        });
-
-        // If account exists and password is valid, return userId
-        if (accountResult && typeof accountResult === "object" && "user" in accountResult) {
-          return { userId: accountResult.user._id };
-        }
-
-        // If account doesn't exist, create a new one
-        // accountResult will be "InvalidAccountId" if account doesn't exist
-        if (accountResult === "InvalidAccountId" || accountResult === null) {
-          const result = await createAccount(ctx, {
+        try {
+          const account = await retrieveAccount(ctx, {
             provider: "credentials",
             account: {
               id: email,
-              secret: password, // In production, hash this!
-            },
-            profile: {
-              email,
+              secret: password,
             },
           });
 
-          if (result) {
-            return { userId: result.user._id };
+          // If account exists and password is valid, return userId
+          return { userId: account.user._id };
+        } catch (error: any) {
+          // If account doesn't exist (InvalidAccountId), create a new one
+          if (error.message === "InvalidAccountId") {
+            const result = await createAccount(ctx, {
+              provider: "credentials",
+              account: {
+                id: email,
+                secret: password, // In production, hash this!
+              },
+              profile: {
+                email,
+              },
+            });
+
+            if (result) {
+              return { userId: result.user._id };
+            }
           }
-        }
 
-        // Handle other error cases
-        if (accountResult === "InvalidSecret") {
-          throw new Error("Invalid password");
-        }
-        if (accountResult === "TooManyFailedAttempts") {
-          throw new Error("Too many failed attempts. Please try again later.");
-        }
+          // Handle other error cases
+          if (error.message === "InvalidSecret") {
+            throw new Error("Invalid password");
+          }
+          if (error.message === "TooManyFailedAttempts") {
+            throw new Error("Too many failed attempts. Please try again later.");
+          }
 
-        throw new Error("Invalid credentials");
+          // Re-throw the error if it's not InvalidAccountId
+          throw error;
+        }
       },
     }),
   ],
