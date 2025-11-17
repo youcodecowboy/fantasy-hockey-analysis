@@ -42,8 +42,10 @@ function DashboardContent() {
       if (tokenCookie) {
         console.log("Found yahoo_token_data cookie");
         try {
+          // Cookie value is URL encoded, so decode it first
           const cookieValue = tokenCookie.split("=").slice(1).join("="); // Handle values with =
-          const tokenData = JSON.parse(decodeURIComponent(cookieValue));
+          const decodedValue = decodeURIComponent(cookieValue);
+          const tokenData = JSON.parse(decodedValue);
           
           console.log("Parsed token data, storing in Convex...", {
             yahooUserId: tokenData.yahooUserId,

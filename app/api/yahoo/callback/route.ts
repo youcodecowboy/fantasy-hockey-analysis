@@ -88,7 +88,8 @@ export async function GET(request: NextRequest) {
     // Encode the token data for cookie storage
     const tokenDataString = JSON.stringify(tokenData);
     
-    response.cookies.set("yahoo_token_data", tokenDataString, {
+    // Set cookie with proper encoding
+    response.cookies.set("yahoo_token_data", encodeURIComponent(tokenDataString), {
       httpOnly: false, // Need client-side access to read and store in Convex
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -97,6 +98,7 @@ export async function GET(request: NextRequest) {
     });
 
     console.log("Yahoo OAuth callback: Tokens stored in cookie, redirecting to dashboard");
+    console.log("Cookie set with data length:", tokenDataString.length);
     return response;
   } catch (error) {
     console.error("OAuth callback error:", error);
