@@ -243,8 +243,11 @@ export const syncLeagueMatchups = action({
         const team2Final = team2Retry;
 
         // Calculate scores from team stats
-        const team1Stats = team1.team_stats?.stats || [];
-        const team2Stats = team2.team_stats?.stats || [];
+        // Handle stats - can be array or single object
+        const team1StatsRaw = team1.team_stats?.stats || [];
+        const team2StatsRaw = team2.team_stats?.stats || [];
+        const team1Stats = Array.isArray(team1StatsRaw) ? team1StatsRaw : team1StatsRaw ? [team1StatsRaw] : [];
+        const team2Stats = Array.isArray(team2StatsRaw) ? team2StatsRaw : team2StatsRaw ? [team2StatsRaw] : [];
         
         // Find total points stat (stat_id "1" is usually total points)
         const team1Score = parseFloat(team1Stats.find((s: any) => s.stat_id === "1")?.value || "0");
@@ -264,8 +267,11 @@ export const syncLeagueMatchups = action({
       } else {
         // Use original teams
         // Calculate scores from team stats
-        const team1Stats = team1.team_stats?.stats || [];
-        const team2Stats = team2.team_stats?.stats || [];
+        // Handle stats - can be array or single object
+        const team1StatsRaw = team1.team_stats?.stats || [];
+        const team2StatsRaw = team2.team_stats?.stats || [];
+        const team1Stats = Array.isArray(team1StatsRaw) ? team1StatsRaw : team1StatsRaw ? [team1StatsRaw] : [];
+        const team2Stats = Array.isArray(team2StatsRaw) ? team2StatsRaw : team2StatsRaw ? [team2StatsRaw] : [];
         
         // Find total points stat (stat_id "1" is usually total points)
         const team1Score = parseFloat(team1Stats.find((s: any) => s.stat_id === "1")?.value || "0");
