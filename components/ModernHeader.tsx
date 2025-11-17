@@ -93,13 +93,14 @@ export function ModernHeader() {
                 <div className="flex flex-col gap-4">
                   {/* Logo in drawer */}
                   <div className="flex items-center gap-3 pb-4 border-b">
-                    <div className="relative h-12 w-12 flex-shrink-0">
+                    <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full">
                       <Image
                         src="/pbc.png"
                         alt="Pyongyang Bicycle Club"
                         width={48}
                         height={48}
-                        className="rounded-full object-cover"
+                        className="object-cover"
+                        unoptimized
                       />
                     </div>
                     <div>
