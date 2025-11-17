@@ -2,6 +2,7 @@ import { convexAuth } from "@convex-dev/auth/server";
 import { ConvexCredentials } from "@convex-dev/auth/providers/ConvexCredentials";
 import { httpRouter } from "convex/server";
 import { createAccount, retrieveAccount } from "@convex-dev/auth/server";
+import { Scrypt } from "lucia";
 
 const http = httpRouter();
 
@@ -9,6 +10,14 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     ConvexCredentials({
       id: "credentials",
+      crypto: {
+        async hashSecret(password: string) {
+          return await new Scrypt().hash(password);
+        },
+        async verifySecret(password: string, hash: string) {
+          return await new Scrypt().verify(hash, password);
+        },
+      },
       authorize: async (credentials, ctx) => {
         const email = credentials.email as string | undefined;
         const password = credentials.password as string | undefined;
